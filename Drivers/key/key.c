@@ -6,7 +6,7 @@
  * File: key.c
  * Author: John Fox <wmoyanren@gmail.com>
  * Platform: GD32F470 / MSPM0G3507
- * Version: 1.00 (2026/6/3) - Original
+ * Version: 1.01 (2026/7/20) - Original
  */
 
 #include "key.h"
@@ -155,7 +155,7 @@ bool key_read_msp(key_dev_t *self)
     key_dev_t *dev = (key_dev_t *)self;
     /* 假设低电平按下 */
     if ((DL_GPIO_readPins(dev->hw.port, dev->hw.pin) & dev->hw.pin) == 0) {
-        delay_cycles(3200000); // 约20ms的软件消抖（基于主频）
+        delay_cycles((CPUCLK_FREQ / 1000) * 20);
         if ((DL_GPIO_readPins(dev->hw.port, dev->hw.pin) & dev->hw.pin) == 0) {
             while((DL_GPIO_readPins(dev->hw.port, dev->hw.pin) & dev->hw.pin) == 0);
             return true;
@@ -168,6 +168,13 @@ bool key_read_msp(key_dev_t *self)
 /* 以下是KEY中断状态机部分 */
 /////////////////////////
 
+/* 
+ * 假设主频为 80MHz，消抖目标时间 20ms。
+ * 在 -O0 编译优化下，Main 轮询一次 key_process_loop 耗时约 400~600 个 CPU 周期
+ * 阈值公式：(CPUCLK_FREQ / 1000) * 20ms / 单次轮询平均周期数
+ */
+#define KEY_DEBOUNCE_THRESHOLD   ((CPUCLK_FREQ / 1000) * 20 / 640)
+
 /* 异步状态机高频轮询 */
 void key_process_loop(void)
 {
@@ -177,7 +184,7 @@ void key_process_loop(void)
         if (curr->is_triggered)
         {
             curr->debounce_cnt++;
-            if (curr->debounce_cnt > 2500) // 根据主频和调用频率调整
+            if (curr->debounce_cnt > KEY_DEBOUNCE_THRESHOLD) // 根据主频和调用频率调整
             {
                 /* 检查引脚是否仍为低电平（按下状态） */
                 if ((DL_GPIO_readPins(curr->hw.port, curr->hw.pin) & curr->hw.pin) == 0)

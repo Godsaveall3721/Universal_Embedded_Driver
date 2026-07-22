@@ -5,8 +5,8 @@
  *
  * File: key.h
  * Author: John Fox <wmoyanren@gmail.com>
- * Platform: CIMC_2026_GD32F470
- * Version: 1.00 (2026/6/3) - Original
+ * Platform: GD32F470 / MSPM0G3507
+ * Version: 1.01 (2026/7/20) - Original
  */
 
 #ifndef __HARDWARE_KEY_KEY_H__
