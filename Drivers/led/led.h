@@ -6,7 +6,7 @@
  * File: led.h
  * Author: John Fox <wmoyanren@gmail.com>
  * Platform: CIMC_2026_GD32F470
- * Version: 1.00 (2026/5/30) - Original
+ * Version: 1.01 (2026/7/20) - Original
  */
 
 #ifndef __HARDWARE_LED_LED_H__
